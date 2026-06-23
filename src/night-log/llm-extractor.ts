@@ -15,7 +15,6 @@ import {
 
 @Injectable()
 export class LlmNightLogExtractor implements NightLogExtractor {
-  private readonly apiKey = process.env.OPENAI_API_KEY;
   private readonly model = process.env.OPENAI_MODEL ?? 'gpt-4o-mini';
   private readonly baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
 
@@ -28,7 +27,8 @@ export class LlmNightLogExtractor implements NightLogExtractor {
   }
 
   async extract(input: ExtractNightLogInput): Promise<ObservationDraft[]> {
-    if (!this.apiKey) {
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    if (!apiKey) {
       throw new NightLogExtractionError('OPENAI_API_KEY is not configured');
     }
 
@@ -46,7 +46,7 @@ Return JSON: { "observations": [ { "occurredAt"?: string, "room"?: string, "cate
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

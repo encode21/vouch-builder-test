@@ -9,6 +9,8 @@ npm install
 cp .env.example .env
 ```
 
+Local dev loads `.env` automatically via `dotenv` at startup. Restart the server after changing `.env`.
+
 ## Environment variables
 
 | Variable | Required | Description |
