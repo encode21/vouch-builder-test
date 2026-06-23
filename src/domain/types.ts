@@ -114,4 +114,4 @@ export interface NightLogExtractor {
   extract(input: ExtractNightLogInput): Promise<ObservationDraft[]>;
 }
 
-export const PROMPT_VERSION = 'night-log-v2';
+export const PROMPT_VERSION = 'night-log-v3';

@@ -7,6 +7,8 @@ import { normalizeStructuredEvents } from '../events/event-normalizer';
 import { assertAllItemsGrounded, buildHandover } from './handover.builder';
 import { HandoverRequestDto } from './dto/handover-request.dto';
 import { validateNightLogGrounding } from '../night-log/grounding.validator';
+import { normalizeNightLogDrafts } from '../night-log/draft-normalizer';
+import { detectResolutionDrafts } from '../night-log/resolution-detector';
 import { LlmNightLogExtractor } from '../night-log/llm-extractor';
 import { reconcileObservations } from '../reconciliation/reconciler';
 import { assignShiftDate } from '../shift/shift-date.util';
@@ -67,17 +69,29 @@ export class HandoverService {
         });
       } else {
         try {
-          const drafts = await extractor.extract({
+          const rawDrafts = await extractor.extract({
             hotelId: request.hotelId,
             shiftDate: request.morningDate,
             nightLog: request.nightLog,
             timezone: request.timezone,
           });
 
+          const normalizedDrafts = normalizeNightLogDrafts(
+            rawDrafts as Array<
+              import('../domain/types').ObservationDraft & {
+                quote?: string;
+                paragraphId?: string;
+              }
+            >,
+          );
+          const supplementalDrafts = detectResolutionDrafts(request.nightLog, normalizedDrafts);
+          const drafts = [...normalizedDrafts, ...supplementalDrafts];
+
           this.logger.info({
             runId,
             phase: 'llm_extraction',
             draftCount: drafts.length,
+            supplementalDraftCount: supplementalDrafts.length,
             promptVersion: this.llmExtractor?.getPromptVersion(),
             model: this.llmExtractor?.getModelName(),
           });

@@ -1,8 +1,7 @@
 import { newId } from '../common/id';
 import { Observation, ObservationSignal, StructuredEvent } from '../domain/types';
 import { assignShiftDate } from '../shift/shift-date.util';
-
-const SKIP_TYPES = new Set(['check_in', 'walk_in', 'lost_keycard', 'guest_message', 'note']);
+import { extractRoomFromText } from '../common/room.util';
 
 const PROGRESS_KEYWORDS = [
   'update on',
@@ -24,20 +23,10 @@ function slug(value: string): string {
 }
 
 function extractRoomFromDescription(description: string): string | undefined {
-  const patterns = [
-    /\bnear room (\d{3})\b/i,
-    /\broom (\d{3})\b/i,
-    /\b(\d{3}) 房\b/,
-    /\brooms? (\d{3}(?:, \d{3})*)/i,
-  ];
-  for (const pattern of patterns) {
-    const match = description.match(pattern);
-    if (match) {
-      return match[1].split(',')[0].trim();
-    }
-  }
-  return undefined;
+  return extractRoomFromText(description);
 }
+
+const SKIP_TYPES = new Set(['check_in', 'walk_in', 'lost_keycard', 'guest_message', 'note']);
 
 function buildSubjectKey(event: StructuredEvent, room?: string): string {
   const typePart = slug(event.type);
