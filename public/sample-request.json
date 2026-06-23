@@ -1,0 +1,35 @@
+{
+  "hotelId": "lumen-sg",
+  "timezone": "+08:00",
+  "morningDate": "2026-05-30",
+  "events": [
+    {
+      "id": "evt_0002",
+      "timestamp": "2026-05-26T00:20:00+08:00",
+      "type": "maintenance",
+      "room": "112",
+      "guest": "Sarah Wong",
+      "description": "Aircon not cooling. Guest moved to room 115 for the night. Room 112 marked OUT OF ORDER. Needs aircon repair.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0018",
+      "timestamp": "2026-05-29T23:40:00+08:00",
+      "type": "maintenance",
+      "room": "112",
+      "guest": null,
+      "description": "Aircon compressor part for room 112 has arrived. Vendor repair scheduled Saturday morning. Room 112 remains OUT OF ORDER until then.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0023",
+      "timestamp": "2026-05-30T03:50:00+08:00",
+      "type": "damage_report",
+      "room": "226",
+      "guest": "Marcus Tan",
+      "description": "Housekeeping found a cracked basin in 226 after the guest checked out. Night staff proposes charging the SGD 500 damage fee to the card on file. No photos were taken and there is no manager approval on record yet.",
+      "status": "pending"
+    }
+  ],
+  "nightLog": ""
+}

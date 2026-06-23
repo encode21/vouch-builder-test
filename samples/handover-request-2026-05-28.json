@@ -1,0 +1,116 @@
+{
+  "hotelId": "lumen-sg",
+  "timezone": "+08:00",
+  "morningDate": "2026-05-28",
+  "events": [
+    {
+      "id": "evt_0001",
+      "timestamp": "2026-05-25T23:14:00+08:00",
+      "type": "check_in",
+      "room": "204",
+      "guest": "Tan Wei Ming",
+      "description": "Late check-in, smooth. Keycard issued. Deposit SGD 100 taken on card.",
+      "status": "resolved"
+    },
+    {
+      "id": "evt_0002",
+      "timestamp": "2026-05-26T00:20:00+08:00",
+      "type": "maintenance",
+      "room": "112",
+      "guest": "Sarah Wong",
+      "description": "Aircon not cooling. Guest moved to room 115 for the night. Room 112 marked OUT OF ORDER. Needs aircon repair.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0003",
+      "timestamp": "2026-05-26T00:35:00+08:00",
+      "type": "compliance",
+      "room": "204",
+      "guest": "Tan Wei Ming",
+      "description": "Passport not scanned into immigration reporting system - scanner was offline. Needs to be scanned and submitted.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0004",
+      "timestamp": "2026-05-26T01:05:00+08:00",
+      "type": "complaint",
+      "room": "207",
+      "guest": null,
+      "description": "Noise complaint about room 210. Called 210, occupants apologised, noise stopped.",
+      "status": "resolved"
+    },
+    {
+      "id": "evt_0005",
+      "timestamp": "2026-05-26T03:10:00+08:00",
+      "type": "lost_keycard",
+      "room": "118",
+      "guest": "Aisha Rahman",
+      "description": "Guest lost keycard. Reissued after ID check, old card deactivated.",
+      "status": "resolved"
+    },
+    {
+      "id": "evt_0024",
+      "timestamp": "2026-05-26T23:25:00+08:00",
+      "type": "check_in",
+      "room": "205",
+      "guest": "Daniel Chen",
+      "description": "Checked in, staying 4 nights through Saturday 30 May. Deposit SGD 100 taken on card. System shows the room in-house until checkout Saturday morning.",
+      "status": "resolved"
+    },
+    {
+      "id": "evt_0006",
+      "timestamp": "2026-05-26T23:50:00+08:00",
+      "type": "check_in_issue",
+      "room": "309",
+      "guest": "Jaydeep Suthkumar",
+      "description": "Booking name 'J. Suthar' did not match passport 'Jaydeep Suthkumar'. Verified booking confirmation email and selfie against passport, allowed entry. Morning team to confirm with OTA. Guest staying 4 nights.",
+      "status": "pending"
+    },
+    {
+      "id": "evt_0007",
+      "timestamp": "2026-05-27T00:15:00+08:00",
+      "type": "deposit_issue",
+      "room": "309",
+      "guest": "Jaydeep Suthkumar",
+      "description": "Card declined for SGD 100 deposit. Guest says will settle in the morning. No deposit collected.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0008",
+      "timestamp": "2026-05-27T01:40:00+08:00",
+      "type": "facilities",
+      "room": null,
+      "guest": null,
+      "description": "Water leak in 2nd floor corridor near room 215. Wet-floor sign placed. Could not reach maintenance overnight. Needs follow-up.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0009",
+      "timestamp": "2026-05-27T02:05:00+08:00",
+      "type": "compliance",
+      "room": null,
+      "guest": null,
+      "description": "Immigration scanner offline again. 3 passports could not be scanned tonight: rooms 207, 210, 211. All need scanning and submitting.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0010",
+      "timestamp": "2026-05-27T02:30:00+08:00",
+      "type": "no_show",
+      "room": "312",
+      "guest": "Lim Boon Heng",
+      "description": "Guaranteed booking, 1 night. Did not arrive by 02:00 cutoff. Booking terms allow a 1-night no-show charge. NOT yet charged - leaving for morning team to decide.",
+      "status": "unresolved"
+    },
+    {
+      "id": "evt_0011",
+      "timestamp": "2026-05-27T03:20:00+08:00",
+      "type": "walk_in",
+      "room": null,
+      "guest": null,
+      "description": "Walk-in wanted a room, hotel full. Turned away politely, recommended nearby property.",
+      "status": "resolved"
+    }
+  ],
+  "nightLog": "Hi all, covering tonight, system was down most of the shift so writing this up by hand, sorry if messy.\n\nPretty quiet night overall. One late check-in around 1am, gentleman in 210, all fine, deposit taken.\n\nFew things to pass on:\n\n- Room 112 aircon — maintenance finally came to look at it tonight. Bad news, he says it's the compressor and the part needs to be ordered in, will take a few days. So 112 stays out of order for now. The guest who was originally in there is fine, still in 115.\n\n- The leak in the 2nd floor corridor (near 215) got worse tonight — there was a steady drip and the carpet was getting soaked, so I put a bucket down and moved the wet floor sign. I tried the maintenance line and the building management emergency number, eventually got through to building management who said they'd send someone but no one came before I left. Still not fixed. Please chase this first thing, it's right outside a guest room.\n\n- 312 那个 no-show（昨晚的 guaranteed booking）— 我已经按 booking terms 帮他收了一晚的费用了，这件事 settle 了。\n\n- Someone called down from one of the upper floor rooms around 3am complaining the wifi kept dropping. I couldn't catch which room it was and the line cut off, they said they'd come back down if it was still bad but they never did, so I assume it sorted itself out.\n\n- 309 — the guy with the deposit issue from Tuesday is still not settled, he came in very late and I didn't want to chase him at 2am. Still no deposit on file. Passing it on again.\n\n- Did my rounds on the 2nd floor and noticed 205 had the door ajar, bed clearly not slept in, no luggage anywhere in the room. The system still shows Mr Chen in 205 as in-house, but it looks like nobody's been in there for a day or two. Flagging in case he checked out early and it never got recorded — someone should reconcile this before we keep billing him for the room.\n\n- 208 房的客人刚才下来说房间的保险箱打不开了，他的护照和一些现金锁在里面，明天一早要退房赶飞机。试过重设密码也不行，要尽快找维修或保险箱公司来开，不然他走不了。\n\nThat's it from me."
+}

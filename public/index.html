@@ -4,203 +4,92 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Night-Shift Handover</title>
-    <style>
-      :root {
-        font-family: system-ui, sans-serif;
-        line-height: 1.4;
-        color: #111;
-        background: #f6f7f9;
-      }
-      body {
-        margin: 0;
-        padding: 1rem;
-      }
-      main {
-        max-width: 960px;
-        margin: 0 auto;
-      }
-      h1 {
-        margin-top: 0;
-      }
-      label {
-        display: block;
-        font-weight: 600;
-        margin: 0.75rem 0 0.25rem;
-      }
-      input,
-      textarea,
-      button {
-        font: inherit;
-      }
-      input,
-      textarea {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: #fff;
-      }
-      textarea {
-        min-height: 8rem;
-        font-family: ui-monospace, monospace;
-        font-size: 0.9rem;
-      }
-      button {
-        margin-top: 1rem;
-        padding: 0.6rem 1rem;
-        border: 0;
-        border-radius: 4px;
-        background: #1f4fd6;
-        color: #fff;
-        cursor: pointer;
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: wait;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 0.75rem;
-      }
-      pre {
-        white-space: pre-wrap;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 1rem;
-        overflow: auto;
-      }
-      .error {
-        color: #a40000;
-      }
-      .meta {
-        color: #555;
-        font-size: 0.9rem;
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main>
-      <h1>Night-Shift Handover</h1>
-      <p class="meta">Stateless demo UI. Submits to <code>POST /handover</code> on this host.</p>
+    <div class="page">
+      <header>
+        <h1>Night-Shift Handover</h1>
+        <p class="subtitle">
+          Utility view for generating evidence-grounded morning handovers. Same-origin API at
+          <code>POST /handover</code>.
+        </p>
+      </header>
 
-      <form id="handover-form">
-        <div class="grid">
-          <div>
-            <label for="hotelId">Hotel ID</label>
-            <input id="hotelId" name="hotelId" value="lumen-sg" required />
+      <section class="card" aria-labelledby="form-heading">
+        <h2 id="form-heading">Request</h2>
+        <form id="handover-form" novalidate>
+          <div class="form-grid">
+            <div>
+              <label for="hotelId">Hotel ID</label>
+              <input id="hotelId" name="hotelId" autocomplete="off" required />
+            </div>
+            <div>
+              <label for="morningDate">Morning date</label>
+              <input id="morningDate" name="morningDate" type="date" required />
+            </div>
+            <div>
+              <label for="timezone">
+                Timezone
+                <span class="hint">(default Asia/Singapore)</span>
+              </label>
+              <input id="timezone" name="timezone" value="+08:00" autocomplete="off" required />
+            </div>
           </div>
-          <div>
-            <label for="timezone">Timezone</label>
-            <input id="timezone" name="timezone" value="+08:00" required />
+
+          <div class="field">
+            <label for="events">Structured events (JSON array)</label>
+            <textarea id="events" name="events" spellcheck="false" required></textarea>
           </div>
-          <div>
-            <label for="morningDate">Morning date</label>
-            <input id="morningDate" name="morningDate" type="date" value="2026-05-30" required />
+
+          <div class="field">
+            <label for="nightLog">Night log (optional free text)</label>
+            <textarea
+              id="nightLog"
+              name="nightLog"
+              spellcheck="false"
+              placeholder="Multilingual night-shift prose for LLM extraction"
+            ></textarea>
           </div>
+
+          <div class="actions">
+            <button type="submit" id="submit-btn" class="primary">Generate handover</button>
+            <button type="button" id="load-sample-btn" class="secondary">Load sample data</button>
+            <button type="button" id="reset-btn" class="secondary">Reset</button>
+          </div>
+
+          <div id="loading-banner" class="loading-banner" hidden role="status">
+            Generating handover…
+          </div>
+          <div id="error-banner" class="error-banner" hidden role="alert"></div>
+        </form>
+      </section>
+
+      <section id="results" class="results" hidden aria-live="polite">
+        <div class="card">
+          <h2>Handover</h2>
+          <p id="meta-bar" class="meta-bar"></p>
+          <div id="sections-root"></div>
         </div>
 
-        <label for="events">Events JSON</label>
-        <textarea id="events" name="events" required></textarea>
-
-        <label for="nightLog">Night log (optional)</label>
-        <textarea id="nightLog" name="nightLog" placeholder="Free-text night log for LLM extraction"></textarea>
-
-        <button type="submit" id="submit-btn">Generate handover</button>
-      </form>
-
-      <section id="result" hidden>
-        <h2>Result</h2>
-        <p id="status" class="meta"></p>
-        <h3>Rendered handover</h3>
-        <pre id="rendered"></pre>
-        <h3>JSON</h3>
-        <pre id="json"></pre>
+        <div class="card">
+          <h2>Audit and raw response</h2>
+          <details class="audit-block" open>
+            <summary>Rendered handover text</summary>
+            <pre id="rendered-text"></pre>
+          </details>
+          <details class="audit-block">
+            <summary>Raw JSON response</summary>
+            <pre id="raw-json"></pre>
+            <div class="audit-actions">
+              <button type="button" id="copy-json-btn" class="secondary">Copy JSON</button>
+              <span id="copy-feedback" class="copy-feedback" hidden>Copied</span>
+            </div>
+          </details>
+        </div>
       </section>
-      <p id="error" class="error" hidden></p>
-    </main>
+    </div>
 
-    <script>
-      const sampleEvents = [
-        {
-          id: 'evt_0002',
-          timestamp: '2026-05-26T00:20:00+08:00',
-          type: 'maintenance',
-          room: '112',
-          guest: 'Sarah Wong',
-          description:
-            'Aircon not cooling. Guest moved to room 115 for the night. Room 112 marked OUT OF ORDER. Needs aircon repair.',
-          status: 'unresolved',
-        },
-        {
-          id: 'evt_0018',
-          timestamp: '2026-05-29T23:40:00+08:00',
-          type: 'maintenance',
-          room: '112',
-          guest: null,
-          description:
-            'Aircon compressor part for room 112 has arrived. Vendor repair scheduled Saturday morning. Room 112 remains OUT OF ORDER until then.',
-          status: 'unresolved',
-        },
-        {
-          id: 'evt_0023',
-          timestamp: '2026-05-30T03:50:00+08:00',
-          type: 'damage_report',
-          room: '226',
-          guest: 'Marcus Tan',
-          description:
-            'Housekeeping found a cracked basin in 226 after the guest checked out. Night staff proposes charging the SGD 500 damage fee to the card on file. No photos were taken and there is no manager approval on record yet.',
-          status: 'pending',
-        },
-      ];
-
-      document.getElementById('events').value = JSON.stringify(sampleEvents, null, 2);
-
-      document.getElementById('handover-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const btn = document.getElementById('submit-btn');
-        const errorEl = document.getElementById('error');
-        const resultEl = document.getElementById('result');
-        errorEl.hidden = true;
-        resultEl.hidden = true;
-        btn.disabled = true;
-
-        try {
-          const events = JSON.parse(document.getElementById('events').value);
-          const nightLog = document.getElementById('nightLog').value.trim();
-          const payload = {
-            hotelId: document.getElementById('hotelId').value,
-            timezone: document.getElementById('timezone').value,
-            morningDate: document.getElementById('morningDate').value,
-            events,
-          };
-          if (nightLog) payload.nightLog = nightLog;
-
-          const response = await fetch('/handover', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-
-          const body = await response.json();
-          if (!response.ok) {
-            throw new Error(body.message || JSON.stringify(body));
-          }
-
-          document.getElementById('status').textContent =
-            `HTTP ${response.status} · runId ${body.runId ?? 'n/a'}`;
-          document.getElementById('rendered').textContent = body.renderedText ?? '';
-          document.getElementById('json').textContent = JSON.stringify(body, null, 2);
-          resultEl.hidden = false;
-        } catch (err) {
-          errorEl.textContent = err instanceof Error ? err.message : String(err);
-          errorEl.hidden = false;
-        } finally {
-          btn.disabled = false;
-        }
-      });
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>
