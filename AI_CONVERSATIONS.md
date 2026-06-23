@@ -4,7 +4,7 @@
 
 These conversations were conducted in Indonesian — the language I naturally reach for when planning and debugging under pressure. English is my working language for code and documentation, but switching to Indonesian lets me think faster and more precisely during a tight timebox.
 
-**Tools used:** Implementation and debugging ran primarily in **Cursor Agent** (sessions logged below). For early architecture and scope decisions (Sessions 1–2), I also **compared conclusions with Claude** to stress-test assumptions — especially the AI boundary and two-hour scope — before committing implementation prompts to Cursor. I kept a single log in this file rather than a separate Claude export: the decisions that shaped the repo are here, and duplicating the same guidance across `AI_CONVERSATIONS.md`, `CLAUDE.md`, and Cursor rules would add noise without new signal for reviewers.
+**Tools used:** Implementation and debugging ran primarily in **Cursor Agent** (sessions logged below). For early architecture and scope decisions (Sessions 1–2), I also **compared conclusions with ChatGPT and Claude** to stress-test assumptions — especially the AI boundary and two-hour scope — before committing implementation prompts to Cursor. I kept a single log in this file rather than a separate Claude export: the decisions that shaped the repo are here, and duplicating the same guidance across `AI_CONVERSATIONS.md`, `AGENTS.md`, and Cursor rules would add noise without new signal for reviewers.
 
 The sessions show my actual working process: how I analyzed the brief, pushed back on an initially over-engineered design, and converged on the smallest trustworthy implementation that still satisfies the core invariants.
 
@@ -16,17 +16,19 @@ The conversations are unedited to reflect the real decision trail.
 
 I split work across separate Cursor Agent chats so each prompt stayed focused. The sidebar above maps to the sessions in this file:
 
-| Cursor chat title | Session | Focus |
-|---|---|---|
-| Vouch Builder Test: Night… | [5](#session-5--core-service-implementation) | NestJS handover service, tests, grounding |
-| Lightweight browser UI fo… | [6](#session-6--lightweight-browser-ui) | HTML/CSS/JS demo at `/ui` |
-| *(Railway deployment — same build chat as Session 5)* | [7](#session-7--railway-deployment-preparation) | Dockerfile, `railway.toml`, health probe |
-| *(Samples & simulation — continued in build chat)* | [4](#session-4--testing-and-interviewer-simulation) | May 28 sample, interviewer replay |
-| Hotel incident report follo… | [8](#session-8--hotel-incident-report-follow-up) | Live May 28 output review + reconciliation fixes |
-| npm ci error troubleshooti… | [9](#session-9--railway-npm-ci-build-troubleshooting) | Lockfile `ajv` conflicts on Railway |
-| Improving document read… | [3](#session-3--making-this-log-reviewer-ready) | Restructure `AI_CONVERSATIONS.md` |
-| Document review and tas… | [10](#session-10--document-review-and-submission-wrap-up) | Extend this log for interviewer review |
-| *(Regex vs LLM — follow-up in incident chat)* | [11](#session-11--regex-vs-llm-for-night-log-parsing) | Why regex exists alongside the LLM parser |
+
+| Cursor chat title                                     | Session                                                   | Focus                                            |
+| ----------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------ |
+| Vouch Builder Test: Night…                            | [5](#session-5--core-service-implementation)              | NestJS handover service, tests, grounding        |
+| Lightweight browser UI fo…                            | [6](#session-6--lightweight-browser-ui)                   | HTML/CSS/JS demo at `/ui`                        |
+| *(Railway deployment — same build chat as Session 5)* | [7](#session-7--railway-deployment-preparation)           | Dockerfile, `railway.toml`, health probe         |
+| *(Samples & simulation — continued in build chat)*    | [4](#session-4--testing-and-interviewer-simulation)       | May 28 sample, interviewer replay                |
+| Hotel incident report follo…                          | [8](#session-8--hotel-incident-report-follow-up)          | Live May 28 output review + reconciliation fixes |
+| npm ci error troubleshooti…                           | [9](#session-9--railway-npm-ci-build-troubleshooting)     | Lockfile `ajv` conflicts on Railway              |
+| Improving document read…                              | [3](#session-3--making-this-log-reviewer-ready)           | Restructure `AI_CONVERSATIONS.md`                |
+| Document review and tas…                              | [10](#session-10--document-review-and-submission-wrap-up) | Extend this log for interviewer review           |
+| *(Regex vs LLM — follow-up in incident chat)*         | [11](#session-11--regex-vs-llm-for-night-log-parsing)     | Why regex exists alongside the LLM parser        |
+
 
 Sessions 1–2 are planning chats (screenshots in `docs/screenshots/`). Sessions 3–4 and 10 are documentation and simulation work done after the core build.
 
@@ -86,11 +88,13 @@ With the design settled, I needed to give Cursor effective implementation instru
 
 **Decision:**
 
-| Layer | Purpose |
-|---|---|
+
+| Layer                            | Purpose                                                                     |
+| -------------------------------- | --------------------------------------------------------------------------- |
 | Karpathy rules (`.cursor/rules`) | General coding behaviour: simplicity, surgical changes, no speculative code |
-| `AGENTS.md` | Project-specific invariants and hard constraints |
-| Active Cursor conversation | The specific implementation task in progress |
+| `AGENTS.md`                      | Project-specific invariants and hard constraints                            |
+| Active Cursor conversation       | The specific implementation task in progress                                |
+
 
 The Cursor prompt I derived from this session focused implementation on: grounding verification, deterministic reconciliation, focused tests, and avoiding unnecessary infrastructure.
 
@@ -154,13 +158,15 @@ That was enough for deterministic-path testing, but not for the full brief scena
 
 **How to simulate what an interviewer would do:**
 
-| Path | Command / action |
-|---|---|
-| Unit tests (no live LLM) | `npm test` — uses a fake night-log extractor |
-| API — events only | `curl -d @samples/handover-request.json` against `POST /handover` |
+
+| Path                      | Command / action                                                                |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| Unit tests (no live LLM)  | `npm test` — uses a fake night-log extractor                                    |
+| API — events only         | `curl -d @samples/handover-request.json` against `POST /handover`               |
 | API — full brief scenario | `curl -d @samples/handover-request-2026-05-28.json` (requires `OPENAI_API_KEY`) |
-| Browser UI | open `/`, click **Load sample data**, optionally paste night log, submit |
-| Health check | `curl http://localhost:3000/health` |
+| Browser UI                | open `/`, click **Load sample data**, optionally paste night log, submit        |
+| Health check              | `curl http://localhost:3000/health`                                             |
+
 
 This kept testing practical inside the timebox: deterministic behaviour is covered by Jest, while the May 28 sample lets anyone replay the full handover path without manually assembling events and night-log text from separate files.
 
@@ -216,14 +222,16 @@ Deployment was a separate prompt after core logic and UI were stable.
 
 **What was added:**
 
-| Artifact | Purpose |
-|---|---|
-| Multi-stage `Dockerfile` | `npm ci` → build → non-root runner with `dist/` + `public/` |
-| `railway.toml` | Dockerfile build, health check on `/health`, restart on failure |
-| `.env.example` | Document `PORT`, `NODE_ENV`, `LOG_LEVEL`, `OPENAI_*` |
-| `.dockerignore` | Exclude `node_modules`, `.env`, tests, local docs |
-| `src/config/env.ts` | Startup validation; warn if `OPENAI_API_KEY` missing in production |
-| `src/main.ts` | Bind `0.0.0.0`; respect Railway-injected `PORT` |
+
+| Artifact                 | Purpose                                                            |
+| ------------------------ | ------------------------------------------------------------------ |
+| Multi-stage `Dockerfile` | `npm ci` → build → non-root runner with `dist/` + `public/`        |
+| `railway.toml`           | Dockerfile build, health check on `/health`, restart on failure    |
+| `.env.example`           | Document `PORT`, `NODE_ENV`, `LOG_LEVEL`, `OPENAI_`*               |
+| `.dockerignore`          | Exclude `node_modules`, `.env`, tests, local docs                  |
+| `src/config/env.ts`      | Startup validation; warn if `OPENAI_API_KEY` missing in production |
+| `src/main.ts`            | Bind `0.0.0.0`; respect Railway-injected `PORT`                    |
+
 
 **Decision:** one stateless Railway service — no database, no extra containers. Health check must succeed without calling the LLM.
 
@@ -241,13 +249,15 @@ After running the full May 28 sample (`samples/handover-request-2026-05-28.json`
 
 **Diagnosis of the live output:**
 
-| Problem | Example |
-|---|---|
-| Duplicate incidents (threading failed) | Room 112, 215, 309 appeared in both `stillOpen` and `newTonight` |
-| Missing `newlyResolved` | Room 312 no-show fee collected in night log but not classified |
-| Grounding bug | Room 205 billing mismatch rejected due to case-sensitive quote match |
-| Missing warnings | Wifi complaint with unknown room not surfaced |
-| Generic actions | Leak and safe incidents lost urgent language from the night log |
+
+| Problem                                | Example                                                              |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| Duplicate incidents (threading failed) | Room 112, 215, 309 appeared in both `stillOpen` and `newTonight`     |
+| Missing `newlyResolved`                | Room 312 no-show fee collected in night log but not classified       |
+| Grounding bug                          | Room 205 billing mismatch rejected due to case-sensitive quote match |
+| Missing warnings                       | Wifi complaint with unknown room not surfaced                        |
+| Generic actions                        | Leak and safe incidents lost urgent language from the night log      |
+
 
 **Root cause:** night-log `subjectKey` values from the LLM (e.g. `aircon_room_112`) did not match structured keys (e.g. `maintenance_room_112`), so the reconciler created new incidents instead of updating existing threads.
 
@@ -316,22 +326,26 @@ After the Session 8 reconciliation fixes, I noticed `resolution-detector.ts` use
 
 **Architectural split:**
 
-| Input type | Parser | Trust level |
-|---|---|---|
-| Multilingual free-text night log | LLM (`llm-extractor.ts`) | Untrusted — drafts only |
-| Structured events | Deterministic normalizer | Trusted |
-| Reconciliation, classification, grounding | Application code | Trusted, testable |
+
+| Input type                                | Parser                   | Trust level             |
+| ----------------------------------------- | ------------------------ | ----------------------- |
+| Multilingual free-text night log          | LLM (`llm-extractor.ts`) | Untrusted — drafts only |
+| Structured events                         | Deterministic normalizer | Trusted                 |
+| Reconciliation, classification, grounding | Application code         | Trusted, testable       |
+
 
 **Where regex is used (and what it does *not* do):**
 
-| Place | Role | Multilingual? |
-|---|---|---|
-| `llm-extractor.ts` | Primary night-log parser | **Yes** — model handles any language |
-| `grounding.validator.ts` | Verify quote exists in source text | Language-agnostic (substring / normalized match) |
-| `draft-normalizer.ts` | Fix `room_309` → `309` in subject keys | Structural only |
-| `room.util.ts` | Extract room numbers from text | **Partial** — `208 房`, `near 215`, `Room 112` |
-| `resolution-detector.ts` | Fallback when LLM misses an obvious resolution | **Limited** — English + a few Chinese phrases (e.g. `settle 了`, `收了一晚的费用`) |
-| `handover.builder.ts` | Pull imperative action phrases into `recommendedAction` | Mixed — English patterns + a few Chinese urgency markers |
+
+| Place                    | Role                                                    | Multilingual?                                                              |
+| ------------------------ | ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `llm-extractor.ts`       | Primary night-log parser                                | **Yes** — model handles any language                                       |
+| `grounding.validator.ts` | Verify quote exists in source text                      | Language-agnostic (substring / normalized match)                           |
+| `draft-normalizer.ts`    | Fix `room_309` → `309` in subject keys                  | Structural only                                                            |
+| `room.util.ts`           | Extract room numbers from text                          | **Partial** — `208 房`, `near 215`, `Room 112`                              |
+| `resolution-detector.ts` | Fallback when LLM misses an obvious resolution          | **Limited** — English + a few Chinese phrases (e.g. `settle 了`, `收了一晚的费用`) |
+| `handover.builder.ts`    | Pull imperative action phrases into `recommendedAction` | Mixed — English patterns + a few Chinese urgency markers                   |
+
 
 **Decision:** regex is a **safety net**, not the parsing strategy. `resolution-detector.ts` only supplements LLM drafts when a line clearly signals resolution (like Room 312's no-show fee) but the model failed to emit `signal: "resolved"`. Every supplemental draft still goes through the same grounding check — the quote must exist verbatim in the source night log.
 
