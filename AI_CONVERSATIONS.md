@@ -4,7 +4,7 @@
 
 These conversations were conducted in Indonesian — the language I naturally reach for when planning and debugging under pressure. English is my working language for code and documentation, but switching to Indonesian lets me think faster and more precisely during a tight timebox.
 
-**Tools used:** Implementation and debugging ran primarily in **Cursor Agent** (sessions logged below). For early architecture and scope decisions (Sessions 1–2), I also **compared conclusions with ChatGPT and Claude** to stress-test assumptions — especially the AI boundary and two-hour scope — before committing implementation prompts to Cursor. I kept a single log in this file rather than a separate Claude export: the decisions that shaped the repo are here, and duplicating the same guidance across `AI_CONVERSATIONS.md`, `AGENTS.md`, and Cursor rules would add noise without new signal for reviewers.
+**Tools used:** Implementation and debugging ran primarily in **Cursor Agent** (sessions logged below). For early architecture and scope decisions (Sessions 1–2), I also **compared conclusions with ChatGPT and Claude** to stress-test assumptions — especially the AI boundary and two-hour scope — before committing implementation prompts to Cursor. I kept a single log in this file rather than a separate ChatGPT export: the decisions that shaped the repo are here, and duplicating the same guidance across `AI_CONVERSATIONS.md`, `AGENTS.md`, and Cursor rules would add noise without new signal for reviewers.
 
 The sessions show my actual working process: how I analyzed the brief, pushed back on an initially over-engineered design, and converged on the smallest trustworthy implementation that still satisfies the core invariants.
 
