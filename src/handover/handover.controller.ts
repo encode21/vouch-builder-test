@@ -21,8 +21,12 @@ export class HandoverController {
   }
 
   @Get('health')
-  health(): { status: string; service: string } {
-    return { status: 'ok', service: 'night-shift-handover' };
+  health(): { status: string; service: string; timestamp: string } {
+    return {
+      status: 'ok',
+      service: 'night-shift-handover',
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Post('handover')

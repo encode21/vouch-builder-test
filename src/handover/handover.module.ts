@@ -8,6 +8,7 @@ import { LlmNightLogExtractor } from '../night-log/llm-extractor';
   imports: [
     LoggerModule.forRoot({
       pinoHttp: {
+        level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
         transport:
           process.env.NODE_ENV !== 'production'
             ? { target: 'pino-pretty', options: { singleLine: true } }
@@ -16,6 +17,7 @@ import { LlmNightLogExtractor } from '../night-log/llm-extractor';
           req: (req) => ({ method: req.method, url: req.url }),
           res: (res) => ({ statusCode: res.statusCode }),
         },
+        redact: ['req.headers.authorization', 'OPENAI_API_KEY'],
       },
     }),
   ],
