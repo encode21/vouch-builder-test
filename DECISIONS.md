@@ -37,8 +37,11 @@ Observations are sorted chronologically and matched in order:
 
 1. Explicit `incidentRef` when present
 2. Same `room + category + subjectKey`
-3. Same `room + compatible subjectKey` (shared type stem)
-4. Otherwise create a new incident
+3. Same `room + category + compatible subjectKey` (shared room number in key or shared type stem)
+4. Same `room + category` when exactly one incident matches that room and category
+5. Same `room + related category` (`maintenance` ↔ `facilities`) when exactly one incident matches
+6. Same `category + compatible subjectKey` for room-less incidents when unique
+7. Otherwise create a new incident
 
 Ambiguous multiple matches create a separate incident with `ambiguous_multiple_incident_matches` warning — false separation preferred over silent merge.
 
@@ -55,7 +58,7 @@ Reopening after resolution records `incident_reopened_after_resolution`.
 
 - Structured events always carry `{ sourceType: 'event', eventId }` evidence.
 - LLM drafts must include exact `quote` strings.
-- Application code verifies quote substring presence in original night log before acceptance.
+- Application code verifies quote substring presence in original night log before acceptance (case-insensitive, whitespace-normalized).
 - Rejected drafts are logged and listed in `rejectedObservations`; they never alter incident state.
 - `assertAllItemsGrounded` throws if any handover item lacks evidence.
 

@@ -38,16 +38,62 @@ function classifyPriority(incident: Incident): HandoverPriority {
   return 'low';
 }
 
+const ACTION_PATTERNS: RegExp[] = [
+  /please chase this first thing[^.]*\./i,
+  /someone should reconcile[^.]*\./i,
+  /要尽快[^。]*[。.]?/,
+  /不然他走不了[。.]?/,
+  /passing it on again[^.]*\./i,
+  /still not fixed[^.]*\./i,
+  /NOT yet charged[^.]*\./i,
+  /morning team to [^.]*\./i,
+  /flagging in case[^.]*\./i,
+];
+
+function textSourcesForAction(incident: Incident): string[] {
+  const texts: string[] = [];
+  for (const observation of incident.observations) {
+    texts.push(observation.issue);
+    for (const ev of observation.evidence) {
+      if (ev.sourceType === 'night_log') {
+        texts.push(ev.quote);
+      }
+    }
+  }
+  return texts;
+}
+
 function conservativeAction(incident: Incident): string {
   const latest = incident.observations[incident.observations.length - 1];
   const issue = latest?.issue.toLowerCase() ?? '';
 
-  if (incident.warnings.some((w) => w.includes('ambiguous') || w.includes('contradict'))) {
+  if (
+    incident.warnings.some(
+      (w) =>
+        w.includes('ambiguous') ||
+        w.includes('contradict') ||
+        w.includes('billing_system_mismatch') ||
+        w.includes('room_unknown'),
+    )
+  ) {
     return 'Confirm status from the source entry.';
   }
 
   if (incident.status === 'resolved') {
     return 'No morning follow-up required unless new information emerges.';
+  }
+
+  for (const text of textSourcesForAction(incident)) {
+    for (const pattern of ACTION_PATTERNS) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[0].trim();
+      }
+    }
+  }
+
+  if (issue.includes('safe') || issue.includes('保险箱')) {
+    return 'Arrange safe engineer or locksmith before guest checkout.';
   }
 
   if (issue.includes('morning team') || issue.includes('flag to')) {

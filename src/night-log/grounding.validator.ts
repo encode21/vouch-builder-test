@@ -9,7 +9,7 @@ export type GroundingResult = {
 };
 
 function normalizeForMatch(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
+  return text.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 export function quoteExistsInSource(quote: string, nightLog: string): boolean {

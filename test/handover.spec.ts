@@ -192,6 +192,90 @@ describe('reconciliation', () => {
     const { incidents } = reconcileObservations(observations);
     expect(incidents).toHaveLength(2);
   });
+
+  it('merges night-log style subject keys onto structured incidents for the same room', () => {
+    const observations = [
+      obs({
+        shiftDate: '2026-05-26',
+        occurredAt: '2026-05-26T00:20:00+08:00',
+        room: '112',
+        category: 'maintenance',
+        subjectKey: 'maintenance_room_112',
+        issue: 'Aircon not cooling',
+        signal: 'opened',
+      }),
+      obs({
+        shiftDate: '2026-05-28',
+        occurredAt: '2026-05-28T02:00:00+08:00',
+        room: '112',
+        category: 'maintenance',
+        subjectKey: 'aircon_room_112',
+        issue: 'Compressor part needs to be ordered, room out of order',
+        signal: 'progress_update',
+        evidence: [
+          {
+            sourceType: 'night_log',
+            paragraphId: 'nl-112',
+            quote:
+              "Bad news, he says it's the compressor and the part needs to be ordered in, will take a few days. So 112 stays out of order for now.",
+          },
+        ],
+      }),
+    ];
+
+    const { incidents, decisions } = reconcileObservations(observations);
+    expect(incidents).toHaveLength(1);
+    expect(decisions[1].decision).toBe('matched_room_compatible_subject');
+    expect(incidents[0].observations).toHaveLength(2);
+    expect(incidents[0].status).toBe('open');
+  });
+
+  it('resolves a carried-over no-show when night log confirms charge applied', () => {
+    const observations = [
+      obs({
+        shiftDate: '2026-05-27',
+        occurredAt: '2026-05-27T02:30:00+08:00',
+        room: '312',
+        category: 'finance',
+        subjectKey: 'no_show_room_312',
+        issue: 'No-show not yet charged',
+        signal: 'opened',
+      }),
+      obs({
+        shiftDate: '2026-05-28',
+        occurredAt: '2026-05-28T02:45:00+08:00',
+        room: '312',
+        category: 'finance',
+        subjectKey: 'no_show_room_312',
+        issue: 'No-show fee collected per booking terms',
+        signal: 'resolved',
+        evidence: [
+          {
+            sourceType: 'night_log',
+            paragraphId: 'nl-312',
+            quote:
+              '312 那个 no-show（昨晚的 guaranteed booking）— 我已经按 booking terms 帮他收了一晚的费用了，这件事 settle 了。',
+          },
+        ],
+      }),
+    ];
+
+    const { incidents } = reconcileObservations(observations);
+    expect(incidents).toHaveLength(1);
+    expect(incidents[0].status).toBe('resolved');
+
+    const result = buildHandover({
+      runId: 'run-312',
+      hotelId: 'lumen-sg',
+      morningDate: '2026-05-28',
+      timezone: '+08:00',
+      incidents,
+      rejectedObservations: [],
+    });
+
+    expect(result.newlyResolved).toHaveLength(1);
+    expect(result.stillOpen.find((i) => i.incidentId === incidents[0].incidentId)).toBeUndefined();
+  });
 });
 
 describe('grounding enforcement', () => {
@@ -231,6 +315,33 @@ describe('grounding enforcement', () => {
       sourceType: 'night_log',
       quote: 'Room 112 aircon still broken',
     });
+  });
+
+  it('accepts quotes that differ only by letter case from the source', () => {
+    const nightLog =
+      'The system still shows Mr Chen in 205 as in-house, but it looks like nobody has been in there.';
+    const drafts: Array<ObservationDraft & { quote: string }> = [
+      {
+        category: 'front_desk',
+        subjectKey: 'checkout_room_205',
+        issue: 'Possible early checkout not recorded',
+        signal: 'unknown',
+        evidence: [],
+        ambiguities: ['billing_system_mismatch'],
+        quote:
+          'the system still shows Mr Chen in 205 as in-house, but it looks like nobody has been in there.',
+      },
+    ];
+
+    const result = validateNightLogGrounding(
+      drafts,
+      nightLog,
+      { hotelId: 'test', shiftDate: '2026-05-28' },
+      () => newId(),
+    );
+
+    expect(result.rejected).toHaveLength(0);
+    expect(result.accepted).toHaveLength(1);
   });
 
   it('ensures every final handover item has evidence', () => {

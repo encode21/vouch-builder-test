@@ -6,18 +6,42 @@ export type ReconciliationDecision =
   | 'matched_incident_ref'
   | 'matched_room_category_subject'
   | 'matched_room_compatible_subject'
+  | 'matched_room_category_unique'
+  | 'matched_room_related_category_unique'
   | 'created_new_incident'
   | 'ambiguous_multiple_matches';
 
+const RELATED_CATEGORIES: Record<string, ReadonlySet<string>> = {
+  maintenance: new Set(['maintenance', 'facilities']),
+  facilities: new Set(['maintenance', 'facilities']),
+};
+
+function roomFromSubjectKey(subjectKey: string): string | undefined {
+  const parts = subjectKey.split('_');
+  const roomIdx = parts.indexOf('room');
+  if (roomIdx >= 0 && roomIdx + 1 < parts.length) {
+    return parts[roomIdx + 1];
+  }
+  return undefined;
+}
+
+function categoriesCompatible(a: string, b: string): boolean {
+  if (a === b) return true;
+  const related = RELATED_CATEGORIES[a];
+  return related?.has(b) ?? false;
+}
+
 function subjectsCompatible(a: string, b: string): boolean {
   if (a === b) return true;
+
+  const aRoom = roomFromSubjectKey(a);
+  const bRoom = roomFromSubjectKey(b);
+  if (aRoom && bRoom && aRoom === bRoom) {
+    return true;
+  }
+
   const aParts = a.split('_');
   const bParts = b.split('_');
-  if (aParts[0] === bParts[0] && aParts.includes('room') && bParts.includes('room')) {
-    const aRoom = aParts[aParts.indexOf('room') + 1];
-    const bRoom = bParts[bParts.indexOf('room') + 1];
-    return aRoom === bRoom;
-  }
   const aStem = aParts.slice(0, 2).join('_');
   const bStem = bParts.slice(0, 2).join('_');
   return aStem === bStem;
@@ -47,6 +71,25 @@ function findMatches(observation: Observation, incidents: Incident[]): Incident[
   );
   if (roomCompatible.length > 0) return roomCompatible;
 
+  if (observation.room) {
+    const sameRoomAndCategory = incidents.filter(
+      (i) =>
+        i.room === observation.room &&
+        i.category === observation.category &&
+        categoriesCompatible(i.category, observation.category),
+    );
+    if (sameRoomAndCategory.length === 1) {
+      return sameRoomAndCategory;
+    }
+
+    const sameRoomRelatedCategory = incidents.filter(
+      (i) => i.room === observation.room && categoriesCompatible(i.category, observation.category),
+    );
+    if (sameRoomRelatedCategory.length === 1) {
+      return sameRoomRelatedCategory;
+    }
+  }
+
   if (!observation.room) {
     const subjectOnly = incidents.filter(
       (i) =>
@@ -56,6 +99,17 @@ function findMatches(observation: Observation, incidents: Incident[]): Incident[
         i.subjectKey === observation.subjectKey,
     );
     if (subjectOnly.length > 0) return subjectOnly;
+
+    const categoryOnly = incidents.filter(
+      (i) =>
+        !i.room &&
+        !observation.room &&
+        i.category === observation.category &&
+        subjectsCompatible(i.subjectKey, observation.subjectKey),
+    );
+    if (categoryOnly.length === 1) {
+      return categoryOnly;
+    }
   }
 
   return [];
@@ -185,6 +239,24 @@ export function reconcileObservations(observations: Observation[]): {
       let decision: ReconciliationDecision = 'matched_room_category_subject';
       if (observation.incidentRef) {
         decision = 'matched_incident_ref';
+      } else if (
+        observation.room &&
+        match.room === observation.room &&
+        match.category !== observation.category &&
+        categoriesCompatible(match.category, observation.category)
+      ) {
+        decision = 'matched_room_related_category_unique';
+      } else if (
+        observation.room &&
+        match.room === observation.room &&
+        match.category === observation.category &&
+        match.subjectKey !== observation.subjectKey
+      ) {
+        decision =
+          subjectsCompatible(match.subjectKey, observation.subjectKey) &&
+          match.subjectKey !== observation.subjectKey
+            ? 'matched_room_compatible_subject'
+            : 'matched_room_category_unique';
       } else if (match.subjectKey !== observation.subjectKey) {
         decision = 'matched_room_compatible_subject';
       }
